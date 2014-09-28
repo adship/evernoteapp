@@ -1,9 +1,13 @@
+import argparse
+import logging
+import os
+import re
+import platform
 from evernote.api.client import EvernoteClient
 from evernote.edam.type.ttypes import Note
-import re
-import os
-import platform
-import argparse
+
+
+logger = logging.getLogger(__name__)
 
 class Mininote:
 
@@ -31,16 +35,15 @@ def get_token():
 
     if windows:
         path_default = os.path.join(my_environ["USERPROFILE"], "AppData", "Roaming", "mininote")
-        print "getting token from default Windows path: " + path_default
     else:
-        path_default = "~/.mininote/"
-        print "getting token from default Linux path: " + path_default
+        path_default = os.path.join(my_environ["HOME"], ".mininote")
+    logger.info("getting token from default path: {}".format(path_default))
 
     try:
         file_name = os.path.join(path_default, "EvernoteDevToken.txt")
         theFile = open(file_name, 'rb')
     except:
-        print "unable to open token file" + file_name
+        logger.error("unable to open token file" + file_name)
         return
 
     theString = theFile.read()
@@ -48,10 +51,11 @@ def get_token():
 
 
 if __name__ == '__main__':
-    try:
-        token = get_token()
-    except:
-        print "could not read token"
+    root_logger = logging.getLogger()
+    root_logger.setLevel('DEBUG')
+    root_logger.addHandler(logging.StreamHandler())
+
+    token = get_token()
     if token:
         mn = Mininote(token)
 
@@ -59,5 +63,3 @@ if __name__ == '__main__':
         mn.add_note(note, get_tags(note))
 
         print get_tags(note)
-
-
