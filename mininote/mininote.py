@@ -30,14 +30,14 @@ def get_token():
     my_environ = os.environ.copy()
 
     if windows:
-        path_default = my_environ["USERPROFILE"] + "\\"
+        path_default = os.path.join(my_environ["USERPROFILE"], "AppData", "Roaming", "mininote")
         print "getting token from default Windows path: " + path_default
     else:
         path_default = "~/.mininote/"
         print "getting token from default Linux path: " + path_default
 
     try:
-        file_name = path_default + "EvernoteDevToken.txt"
+        file_name = os.path.join(path_default, "EvernoteDevToken.txt")
         theFile = open(file_name, 'rb')
     except:
         print "unable to open token file" + file_name
@@ -55,10 +55,9 @@ if __name__ == '__main__':
     if token:
         mn = Mininote(token)
 
-        note = "this is a #test #note"
+        note = "Coffee for Eric today #Drinks"
         mn.add_note(note, get_tags(note))
 
         print get_tags(note)
-        print get_tags('test tags #mini #Mini')
 
 
