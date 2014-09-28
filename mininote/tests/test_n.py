@@ -1,5 +1,5 @@
 from unittest import TestCase
-from mininote.mininote import get_tags
+from mininote.n import get_tags
 
 class TestMininote(TestCase):
 

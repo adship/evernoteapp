@@ -10,6 +10,10 @@ from mininote import Mininote
 logger = logging.getLogger(__name__)
 
 def get_tags(note):
+    """
+    # gets the tag of the note in the format of
+    :param note: in the format of "my note is #tag1 #tag2"
+    """
     return re.findall(r"#(\w+)", note)
 
 def get_token():
@@ -34,6 +38,10 @@ def get_token():
     theString = theFile.read()
     return theString.strip()
 
+def get_cmd():
+    # user enters the note with tag at command prompt
+    return raw_input('mininote>')
+
 
 if __name__ == '__main__':
     root_logger = logging.getLogger()
@@ -43,8 +51,7 @@ if __name__ == '__main__':
     token = get_token()
     if token:
         mn = Mininote(token)
-
-        note = "Coffee for Eric today #Drinks"
+        note = get_cmd()
         mn.add_note(note, get_tags(note))
 
-        print get_tags(note)
+        
