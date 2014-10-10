@@ -40,3 +40,22 @@ class Mininote:
 
             i += len(page.notes)
             page = get_notes(i, MAX_PAGE)
+
+    def list_books(self):
+        notebooks = self.note_store.listNotebooks()
+        for nb in notebooks:
+            print nb.name
+
+    def list_notes(self):
+        pass
+"""
+        notebooks = self.note_store.listNotebooks()
+        for nb in notebooks:
+            print nb.name
+            filter_list = NoteFilter(notebookGuid = nb.guid)
+            result_spec = NotesMetadataResultSpec()
+            note_list = self.note_store.findNotesMetadata(self, authenticationToken = self.token, filter = filter_list, offset=0, maxNotes=32, resultSpec=result_spec)
+            for n in note_list:
+                print n.name
+"""
+
