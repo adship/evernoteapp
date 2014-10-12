@@ -2,7 +2,15 @@ from evernote.api.client import EvernoteClient
 from evernote.edam.notestore.ttypes import NoteFilter
 from evernote.edam.notestore.ttypes import NotesMetadataResultSpec
 from evernote.edam.type.ttypes import Note
+from xml.dom import minidom
 
+def decode_note(note_xml):
+    """
+    :param string: The Evernote string in xml format
+    :returns: A decoded note text
+    """
+    xml_str = minidom.parseString(note_xml)
+    return xml_str.childNodes[1].firstChild.data
 
 class Mininote:
     def __init__(self, dev_token):
@@ -20,7 +28,7 @@ class Mininote:
         note.content += '<en-note>' + text + '</en-note>'
         note.tagNames = tag_list
         self.note_store.createNote(note)
-
+        
     def search(self, string):
         """
         :param string: The Evernote search query string
@@ -33,11 +41,12 @@ class Mininote:
             return self.note_store.findNotesMetadata(note_filter, start, count, NotesMetadataResultSpec())
 
         i = 0
+        result=[]
         page = get_notes(0, MAX_PAGE)
         while i < page.totalNotes:
             for note in page.notes:
-                yield self.note_store.getNote(note.guid, True, False, False, False).content
-
+                yield decode_note(self.note_store.getNote(note.guid, True, False, False, False).content)
+                
             i += len(page.notes)
             page = get_notes(i, MAX_PAGE)
 

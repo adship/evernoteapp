@@ -51,7 +51,8 @@ def add_note(token, note_string):
 
 def query_notes(token, query_string):
     mn = Mininote(token)
-    mn.search(query_string)
+    for note in mn.search(query_string):
+        print note
 
 def list_all_notes(token):
     logger.info("list_all_notes feature not implemented yet...")
