@@ -1,9 +1,16 @@
+from cgi import escape
 from xml.dom import minidom
 
 from evernote.api.client import EvernoteClient
 from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
 from evernote.edam.type.ttypes import Note as EdamNote, NoteSortOrder
 
+
+def encode_note(text):
+    template = '''<?xml version="1.0" encoding="UTF-8"?>
+                  <!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
+                  <en-note>{0}</en-note>'''
+    return template.format(escape(text))
 
 def decode_note(note_xml):
     """
@@ -33,8 +40,7 @@ class Mininote:
         """
         note = EdamNote()
         note.title = "test note"
-        note.content = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
-        note.content += '<en-note>' + text + '</en-note>'
+        note.content = encode_note(text)
         note.tagNames = tag_list
         self.note_store.createNote(note)
 
