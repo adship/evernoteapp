@@ -2,8 +2,10 @@
 import argparse
 import logging
 import os
-import re
 import platform
+import re
+from datetime import datetime
+
 from mininote import Mininote
 
 
@@ -52,7 +54,8 @@ def add_note(token, note_string):
 def query_notes(token, query_string):
     mn = Mininote(token)
     for note in mn.search(query_string):
-        print note
+        date = datetime.fromtimestamp(note.updated_time).strftime("%x %I:%M %p")
+        print u'{}: {}'.format(date, note.text)
 
 def list_all_notes(token):
     logger.info("list_all_notes feature not implemented yet...")
