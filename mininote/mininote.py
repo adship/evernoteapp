@@ -1,10 +1,13 @@
 from cgi import escape
 from xml.dom import minidom
+import logging
 
 from evernote.api.client import EvernoteClient
 from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
 from evernote.edam.type.ttypes import Note as EdamNote, NoteSortOrder
+from evernote.edam.limits.constants import EDAM_NOTE_TITLE_LEN_MIN, EDAM_NOTE_TITLE_LEN_MAX
 
+logger = logging.getLogger(__name__)
 
 def encode_note(text):
     template = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -27,12 +30,18 @@ class Mininote:
 
     def add_note(self, text, tag_list):
         """
-        :param text: The note text to store
+        :param text: The note text is stored in title field
         :param tag_list: A list of tag strings to attach to note
         """
         note = EdamNote()
-        note.title = "test note"
-        note.content = encode_note(text)
+        if text < EDAM_NOTE_TITLE_LEN_MIN or text.isspace():
+            note.title = "untitled"
+        elif text > EDAM_NOTE_TITLE_LEN_MAX:
+            note.title = text[0:EDAM_NOTE_TITLE_LEN_MAX]
+            logger.warning("The text is too long, cutting off...")
+        else:
+            note.title = text                
+        note.content = encode_note("")
         note.tagNames = tag_list
         self.note_store.createNote(note)
 
