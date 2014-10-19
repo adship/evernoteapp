@@ -34,9 +34,9 @@ class Mininote:
         :param tag_list: A list of tag strings to attach to note
         """
         note = EdamNote()
-        if text < EDAM_NOTE_TITLE_LEN_MIN or text.isspace():
+        if len(text) < EDAM_NOTE_TITLE_LEN_MIN or text.isspace():
             note.title = "untitled"
-        elif text > EDAM_NOTE_TITLE_LEN_MAX:
+        elif len(text) > EDAM_NOTE_TITLE_LEN_MAX:
             note.title = text[0:EDAM_NOTE_TITLE_LEN_MAX]
             logger.warning("The text is too long, cutting off...")
         else:
