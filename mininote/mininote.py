@@ -12,21 +12,13 @@ def encode_note(text):
                   <en-note>{0}</en-note>'''
     return template.format(escape(text))
 
-def decode_note(note_xml):
-    """
-    :param string: The Evernote string in xml format
-    :returns: A decoded note text
-    """
-    xml_str = minidom.parseString(note_xml)
-    return xml_str.childNodes[1].firstChild.data
-
 class Note:
-    def __init__(self, edam_note):
+    def __init__(self, note_meta):
         """
-        :param edam_note: The EdamNote instance
+        :param note_meta: NoteMetadata instance
         """
-        self.text = decode_note(edam_note.content)
-        self.updated_time = edam_note.updated / 1000
+        self.text = note_meta.title
+        self.updated_time = note_meta.updated / 1000
 
 class Mininote:
     def __init__(self, dev_token):
@@ -52,17 +44,18 @@ class Mininote:
         MAX_PAGE = 1000
         note_filter = NoteFilter(words = string, order = NoteSortOrder.UPDATED, ascending = True)
 
-        def get_notes(start, count):
-            return self.note_store.findNotesMetadata(note_filter, start, count, NotesMetadataResultSpec())
+        def get_page(start, count):
+            result_spec = NotesMetadataResultSpec(includeTitle = True, includeUpdated = True)
+            return self.note_store.findNotesMetadata(note_filter, start, count, result_spec)
 
         i = 0
-        page = get_notes(0, MAX_PAGE)
+        page = get_page(0, MAX_PAGE)
         while i < page.totalNotes:
             for note_meta in page.notes:
-                edam_note = self.note_store.getNote(note_meta.guid, True, False, False, False)
-                yield Note(edam_note)
+                yield Note(note_meta)
             i += len(page.notes)
-            page = get_notes(i, MAX_PAGE)
+            if i < page.totalNotes: 
+                page = get_page(i, MAX_PAGE)
 
     def list_books(self):
         notebooks = self.note_store.listNotebooks()
