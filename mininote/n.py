@@ -68,7 +68,7 @@ def list_all_books(token):
 
 if __name__ == '__main__':
     root_logger = logging.getLogger()
-    root_logger.setLevel('INFO')
+    root_logger.setLevel('WARNING')
     root_logger.addHandler(logging.StreamHandler())
 
     parser = argparse.ArgumentParser()
