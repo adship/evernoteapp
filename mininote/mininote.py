@@ -1,11 +1,12 @@
-from cgi import escape
-from xml.dom import minidom
 import logging
+from cgi import escape
+from note import Note
 
 from evernote.api.client import EvernoteClient
+from evernote.edam.limits.constants import EDAM_NOTE_TITLE_LEN_MIN, EDAM_NOTE_TITLE_LEN_MAX
 from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
 from evernote.edam.type.ttypes import Note as EdamNote, NoteSortOrder
-from evernote.edam.limits.constants import EDAM_NOTE_TITLE_LEN_MIN, EDAM_NOTE_TITLE_LEN_MAX
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,13 +16,11 @@ def encode_note(text):
                   <en-note>{0}</en-note>'''
     return template.format(escape(text))
 
-class Note:
-    def __init__(self, note_meta):
-        """
-        :param note_meta: NoteMetadata instance
-        """
-        self.text = note_meta.title
-        self.updated_time = note_meta.updated / 1000
+def create_note(note_metadata):
+    """
+    :param note_metadata: NoteMetadata instance
+    """
+    return Note(note_metadata.title, updated_time = note_metadata.updated / 1000)
 
 class Mininote:
     def __init__(self, dev_token):
@@ -61,7 +60,7 @@ class Mininote:
         page = get_page(0, MAX_PAGE)
         while i < page.totalNotes:
             for note_meta in page.notes:
-                yield Note(note_meta)
+                yield create_note(note_meta)
             i += len(page.notes)
             if i < page.totalNotes: 
                 page = get_page(i, MAX_PAGE)
@@ -70,6 +69,3 @@ class Mininote:
         notebooks = self.note_store.listNotebooks()
         for nb in notebooks:
             print nb.name
-
-    def list_notes(self):
-        pass
