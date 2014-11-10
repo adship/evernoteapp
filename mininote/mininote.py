@@ -19,8 +19,8 @@ class Mininote:
     def add_note(self, text):
         """
         :param text: The note text is stored in title field
-        :param tag_list: A list of tag strings to attach to note
         """
+        logger.debug('add note: {}'.format(text))
         note = Note(text = text)
         self.note_store.createNote(convert_to_enote(note))
 
@@ -29,6 +29,7 @@ class Mininote:
         :param string: The Evernote search query string
         :returns: An iterator to retrieve notes
         """
+        logger.debug('searching: {}'.format(string))
         MAX_PAGE = 1000
         note_filter = NoteFilter(words = string, order = NoteSortOrder.UPDATED, ascending = True)
 
@@ -49,18 +50,22 @@ class Mininote:
         """
         :param note: The mininote Note instance
         """
+        logger.debug('update_note: {}'.format(note))
         self.note_store.updateNote(convert_to_enote(note))
 
     def delete_note(self, note):
         """
         :param note: The mininote Note instance
         """
+        logger.debug('delete note: {}'.format(note))
         self.note_store.deleteNote(note.guid)
 
     def list_books(self):
+        """
+        :returns: List of available Evernote notebook names
+        """
         notebooks = self.note_store.listNotebooks()
-        for nb in notebooks:
-            print nb.name
+        return [nb.name for nb in notebooks]
 
 def encode_note_text(text):
     template = '''<?xml version="1.0" encoding="UTF-8"?>

@@ -3,19 +3,20 @@ import argparse
 import logging
 import os
 import platform
-from datetime import datetime
+
+from diff_notes import diff_notes
 from mininote import Mininote
+from note import Note, NoteParseError
+from texteditor import TextEditor
 
 
 logger = logging.getLogger(__name__)
 
-def get_note_text():
-    # user enters the note with tag at command prompt
-    return raw_input('mininote>')
-
 def get_token():
-    # gets the authentication token -- dev_token for now
+    """
+    Gets the authentication token -- dev_token for now
     # TODO: add support for 'real' token
+    """
     windows = "Windows" in platform.system()
     my_environ = os.environ.copy()
 
@@ -35,21 +36,61 @@ def get_token():
     theString = theFile.read()
     return theString.strip()
 
-def add_note(token, note_string):
-    mn = Mininote(token)
-    if note_string == '':
-        note_string = get_note_text()
+def add_note(mn, note_string = None):
+    """
+    Save a new note.
+
+    :param mn: Mininote instance
+    :param note_string: Note to add. If not provided, will prompt for note.
+    """
+    if note_string == None:
+        note_string = raw_input('mininote>')
     mn.add_note(note_string)
 
-def query_notes(token, query_string):
-    mn = Mininote(token)
-    for note in mn.search(query_string):
-        date = datetime.fromtimestamp(note.updated_time).strftime("%x %I:%M %p")
-        print u'{}: {}'.format(date, note.text)
+def query_edit_notes(mn, query_string, interactive):
+    """
+    Display search results and allow edits.
 
-def list_all_books(token):
-    mn = Mininote(token)
-    mn.list_books()
+    :param mn: Mininote instance
+    :param query_string: Search string
+    :param interactive: if True, display results in text editor
+                        and allow edits to be made
+    """
+    before_notes = list(mn.search(query_string))
+    before_formatted_notes = '\r\n'.join(map(str, before_notes))
+
+    if not interactive:
+        print before_formatted_notes
+    else:
+        editor = TextEditor(before_formatted_notes)
+
+        after_formatted_notes = editor.edit()
+        try:
+            nonblank_lines = filter(lambda line: len(line.strip()) > 0, after_formatted_notes.splitlines())
+            after_notes = map(Note.parse_from_str, nonblank_lines)
+        except NoteParseError:
+            logger.error("Unable to parse changes to notes. Session is saved in {}".format(editor.path))
+            return
+        editor.cleanup()
+
+        pairs = diff_notes(before_notes, after_notes)
+        for before, after in pairs:
+            if before == None:
+                mn.add_note(after_notes[after].text)
+            elif after == None:
+                mn.delete_note(before_notes[before])
+            elif after_notes[after].text != before_notes[before].text:
+                before_notes[after].text = after_notes[after].text
+                mn.update_note(before_notes[after])
+
+def list_all_books(mn):
+    """
+    Get a list of Evernote notebooks.
+
+    :param mn: Mininote instance
+    """
+    for notebook in mn.list_books():
+        print notebook
 
 if __name__ == '__main__':
     root_logger = logging.getLogger()
@@ -57,25 +98,27 @@ if __name__ == '__main__':
     root_logger.addHandler(logging.StreamHandler())
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("note_text", default="", nargs="?")
+    parser.add_argument("note_text", default=None, nargs="?")
     parser.add_argument("-a", "--authenticate", help="prompt for authentication credentials", action="store_true")
     parser.add_argument("-c", "--change-notebook", help="change the default notebook")
     parser.add_argument("-b", "--list-books", help="list all notebooks", dest = "list_books", action="store_true")
     parser.add_argument("-q", "--query", help="query server for note containing the string")
     parser.add_argument("-v", "--verbose", help="display additional information", action="store_true")
+    parser.add_argument("-i", "--interactive", default = False, help="interactive edit mode", action="store_true")
     args = parser.parse_args()
 
     if args.verbose:
         root_logger.setLevel('DEBUG')
 
     token = get_token()
-    if token:
-        if args.change_notebook:
-            logger.info("change notebook feature not implemented yet...")
-        elif args.query:
-            query_notes(token, args.query)
-        elif args.list_books:
-            list_all_books(token)
-        else:
-            add_note(token, args.note_text)
 
+    if token:
+        mn = Mininote(token)
+        if args.change_notebook:
+            logger.error("change notebook feature not implemented yet...")
+        elif args.query:
+            query_edit_notes(mn, args.query, args.interactive)
+        elif args.list_books:
+            list_all_books(mn)
+        else:
+            add_note(mn, args.note_text)
