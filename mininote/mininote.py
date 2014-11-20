@@ -34,7 +34,9 @@ class Mininote:
         note_filter = NoteFilter(words = string, order = NoteSortOrder.UPDATED, ascending = True)
 
         def get_page(start, count):
-            result_spec = NotesMetadataResultSpec(includeTitle = True, includeUpdated = True)
+            result_spec = NotesMetadataResultSpec(includeTitle = True,
+                                                  includeCreated = True,
+                                                  includeUpdated = True)
             return self.note_store.findNotesMetadata(note_filter, start, count, result_spec)
 
         i = 0
@@ -80,6 +82,7 @@ def convert_to_mininote(note_metadata):
     """
     return Note(text = note_metadata.title,
                 updated_time = note_metadata.updated / 1000,
+                created_time = note_metadata.created / 1000,
                 guid = note_metadata.guid)
 
 def convert_to_enote(note):
@@ -94,9 +97,10 @@ def convert_to_enote(note):
         logger.warning("The text is too long, cutting off...")
     else:
         title = note.text
-    updated = note.updated_time * 1000 if note.updated_time else None
+    created = note.created_time * 1000 if note.created_time else None
     return EdamNote(guid = note.guid,
                     title = title,
                     content = encode_note_text(""),
-                    updated = updated,
+                    updated = None,
+                    created = created,
                     tagNames = note.tags)

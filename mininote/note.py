@@ -10,15 +10,17 @@ class NoteParseError(Exception):
     pass
 
 class Note:
-    def __init__(self, text, updated_time = None, guid = None):
+    def __init__(self, text, **kwargs):
         """
         :param text: Note string
+        :param guid: Evernote note identifier
+        :param created_time: Time in epoc time
         :param updated_time: Time in epoc time
-        :param guid: Note identifier
         """
         self.text = text
-        self.updated_time = updated_time
-        self.guid = guid
+        self.guid = kwargs.get('guid')
+        self.created_time = kwargs.get('created_time')
+        self.updated_time = kwargs.get('updated_time')
 
     @property
     def tags(self):
@@ -26,8 +28,8 @@ class Note:
         return TAGREGEX.findall(self.text) 
 
     def __str__(self):
-        date = datetime.fromtimestamp(self.updated_time).strftime("%x %I:%M %p")
-        return '{}: {}'.format(date, self.text)
+        created = datetime.fromtimestamp(self.created_time).strftime("%x %I:%M %p")
+        return '{}: {}'.format(created, self.text)
 
     @staticmethod
     def parse_from_str(note_str):
@@ -35,6 +37,7 @@ class Note:
         Parse a string representation of a note
 
         :returns: Note instance
+        :raises: NoteParseError
         """
         datesep = note_str.find(': ')
         if datesep == -1:
@@ -46,4 +49,4 @@ class Note:
             raise NoteParseError
         text = note_str[datesep + 2:]
 
-        return Note(text, mktime(updated_time.timetuple()))
+        return Note(text, created_time = mktime(updated_time.timetuple()))

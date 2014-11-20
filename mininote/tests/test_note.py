@@ -22,14 +22,14 @@ class TestNote(TestCase):
 
     def test_str_format(self):
         """Test that note can be rendered and parsed from string"""
-        notestr = str(Note('hello world', updated_time = 0))
+        notestr = str(Note('hello world', created_time = 0))
 
         date = datetime.fromtimestamp(0).strftime("%x %I:%M %p")
         self.assertEqual('{}: hello world'.format(date), notestr)
 
         note = Note.parse_from_str(notestr)
         self.assertEqual('hello world', note.text)
-        self.assertEqual(0, note.updated_time)
+        self.assertEqual(0, note.created_time)
 
     def test_str_parse_error(self):
         """Test that exception is raised when parsing invalid note"""

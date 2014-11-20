@@ -9,8 +9,8 @@ from mininote.mininote import *
 
 def fake_results_gen():
     """Generate fake search results"""
-    n1 = NoteMetadata(title='title1', updated = 0, guid = 101)
-    n2 = NoteMetadata(title='title2', updated = 1000, guid = 102)
+    n1 = NoteMetadata(title = 'title1', updated = 0, created = 0, guid = 101)
+    n2 = NoteMetadata(title = 'title2', updated = 1000, created = 1000, guid = 102)
     yield NotesMetadataList(startIndex = 0, totalNotes = 2, notes = [n1])
     yield NotesMetadataList(startIndex = 1, totalNotes = 2, notes = [n2])
 
@@ -75,14 +75,14 @@ class TestMininote(TestCase):
 
     def test_convert_evernote(self):
         """Test that an Evernote note is converted to a Mininote note"""
-        note = convert_to_enote(Note(text = 'content', guid = 123, updated_time = 1))
+        note = convert_to_enote(Note(text = 'content', guid = 123, created_time = 1))
         self.assertEqual(123, note.guid)
         self.assertEqual('content', note.title)
-        self.assertEqual(1000, note.updated)
+        self.assertEqual(1000, note.created)
 
     def test_convert_mininote(self):
         """Test that a Mininote note is converted to an Evernote note"""
-        note = convert_to_mininote(EdamNote(title = 'content', updated = 1000, guid = 123))
+        note = convert_to_mininote(EdamNote(title = 'content', updated = 1000, created = 1000, guid = 123))
         self.assertEqual(123, note.guid)
         self.assertEqual('content', note.text)
-        self.assertEqual(1, note.updated_time)
+        self.assertEqual(1, note.created_time)

@@ -10,8 +10,8 @@ class TestN(TestCase):
 
     def setUp(self):
         """Setup notes in DB"""
-        fakenote1 = Note('result1', updated_time = 0)
-        fakenote2 = Note('result2', updated_time = 0)
+        fakenote1 = Note('result1', created_time = 0)
+        fakenote2 = Note('result2', created_time = 0)
         fakemn = Mock()
         fakemn.search.return_value = iter([fakenote1, fakenote2])
 
