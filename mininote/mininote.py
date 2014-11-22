@@ -4,7 +4,7 @@ from cgi import escape
 from note import Note
 
 from evernote.api.client import EvernoteClient
-from evernote.edam.limits.constants import EDAM_NOTE_TITLE_LEN_MIN, EDAM_NOTE_TITLE_LEN_MAX
+from evernote.edam.limits.constants import EDAM_NOTE_TITLE_LEN_MAX
 from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
 from evernote.edam.type.ttypes import Note as EdamNote, NoteSortOrder
 
@@ -80,7 +80,12 @@ def convert_to_mininote(note_metadata):
     Convert Evernote note to Mininote note
     :param note_metadata: NoteMetadata instance
     """
-    return Note(text = note_metadata.title,
+    if len(note_metadata.title) > 2 and note_metadata.title.startswith('"') and \
+                                        note_metadata.title.endswith('"'):
+        text = note_metadata.title[1: -1]
+    else:
+        text = note_metadata.title
+    return Note(text = text,
                 updated_time = note_metadata.updated / 1000,
                 created_time = note_metadata.created / 1000,
                 guid = note_metadata.guid)
@@ -90,16 +95,13 @@ def convert_to_enote(note):
     Convert Mininote note to Evernote note
     :param note: The mininote Note instance
     """
-    if len(note.text) < EDAM_NOTE_TITLE_LEN_MIN or note.text.isspace():
-        title = "untitled"
-    elif len(note.text) > EDAM_NOTE_TITLE_LEN_MAX:
-        title = note.text[0:EDAM_NOTE_TITLE_LEN_MAX]
-        logger.warning("The text is too long, cutting off...")
-    else:
-        title = note.text
+    MAX_NOTE_LEN = EDAM_NOTE_TITLE_LEN_MAX - 2
+    if len(note.text) > MAX_NOTE_LEN:
+        logger.warning("Note is too long, truncating final {} characters".format(len(note.text) - MAX_NOTE_LEN))
+
     created = note.created_time * 1000 if note.created_time else None
     return EdamNote(guid = note.guid,
-                    title = title,
+                    title = '"{}"'.format(note.text[0: MAX_NOTE_LEN]),
                     content = encode_note_text(""),
                     updated = None,
                     created = created,

@@ -26,7 +26,7 @@ class TestMininote(TestCase):
         pargs, kwargs = mock_note_store.createNote.call_args
 
         self.assertEqual(['unittest'], pargs[0].tagNames)
-        self.assertEqual('bar #unittest', pargs[0].title)
+        self.assertEqual('"bar #unittest"', pargs[0].title)
 
     @patch('mininote.mininote.EvernoteClient')
     def test_search(self, MockEvernoteClient):
@@ -53,7 +53,7 @@ class TestMininote(TestCase):
 
         pargs, kwargs = mock_note_store.updateNote.call_args
         self.assertEqual(['tag'], pargs[0].tagNames)
-        self.assertEqual('updated title with #tag', pargs[0].title)
+        self.assertEqual('"updated title with #tag"', pargs[0].title)
 
     @patch('mininote.mininote.EvernoteClient')
     def test_delete_note(self, MockEvernoteClient):
@@ -75,14 +75,24 @@ class TestMininote(TestCase):
 
     def test_convert_evernote(self):
         """Test that an Evernote note is converted to a Mininote note"""
-        note = convert_to_enote(Note(text = 'content', guid = 123, created_time = 1))
+        note = convert_to_enote(Note(text = '  content  ', guid = 123, created_time = 1))
         self.assertEqual(123, note.guid)
-        self.assertEqual('content', note.title)
+        self.assertEqual('"  content  "', note.title)
         self.assertEqual(1000, note.created)
+
+    def test_convert_evernote_trunc(self):
+        """Test that note size is truncated if too long for Evernote"""
+        note = convert_to_enote(Note(text = 'x' * 1000))
+        self.assertEqual('"{}"'.format('x' * 253), note.title)
+
+    def test_convert_evernote_empty(self):
+        """Test that empty note is converted"""
+        note = convert_to_enote(Note(text = ''))
+        self.assertEqual('""', note.title)
 
     def test_convert_mininote(self):
         """Test that a Mininote note is converted to an Evernote note"""
-        note = convert_to_mininote(EdamNote(title = 'content', updated = 1000, created = 1000, guid = 123))
+        note = convert_to_mininote(EdamNote(title = '"content"', updated = 1000, created = 1000, guid = 123))
         self.assertEqual(123, note.guid)
         self.assertEqual('content', note.text)
         self.assertEqual(1, note.created_time)
