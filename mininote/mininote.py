@@ -16,12 +16,11 @@ class Mininote:
         client = EvernoteClient(token = dev_token)
         self.note_store = client.get_note_store()
 
-    def add_note(self, text):
+    def add_note(self, note):
         """
-        :param text: The note text is stored in title field
+        :param note: The mininote Note instance
         """
-        logger.debug('add note: {}'.format(text))
-        note = Note(text = text)
+        logger.debug('add note: {}'.format(note.text))
         self.note_store.createNote(convert_to_enote(note))
 
     def search(self, string):

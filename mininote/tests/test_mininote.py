@@ -20,7 +20,7 @@ class TestMininote(TestCase):
     def test_add_note(self, MockEvernoteClient):
         """Ensure that server call is made to add a note"""
         client = Mininote(dev_token = 'foo')
-        client.add_note('bar #unittest')
+        client.add_note(Note('bar #unittest'))
 
         mock_note_store = MockEvernoteClient().get_note_store()
         pargs, kwargs = mock_note_store.createNote.call_args

@@ -4,7 +4,7 @@ import logging
 import os
 import platform
 
-from diff_notes import diff_notes
+from match_notes import match_notes
 from mininote import Mininote
 from note import Note, NoteParseError
 from texteditor import TextEditor
@@ -45,7 +45,7 @@ def add_note(mn, note_string = None):
     """
     if note_string == None:
         note_string = raw_input('mininote>')
-    mn.add_note(note_string)
+    mn.add_note(Note(note_string))
 
 def query_edit_notes(mn, query_string, interactive):
     """
@@ -73,10 +73,11 @@ def query_edit_notes(mn, query_string, interactive):
             return
         editor.cleanup()
 
-        pairs = diff_notes(before_notes, after_notes)
+        before_notes_reparsed = map(lambda n: Note.parse_from_str(str(n)), before_notes)
+        pairs = match_notes(before_notes_reparsed, after_notes)
         for before, after in pairs:
             if before == None:
-                mn.add_note(after_notes[after].text)
+                mn.add_note(after_notes[after])
             elif after == None:
                 mn.delete_note(before_notes[before])
             elif after_notes[after].text != before_notes[before].text:

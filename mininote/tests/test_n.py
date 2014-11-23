@@ -22,7 +22,9 @@ class TestN(TestCase):
     def test_add_note(self):
         """Ensure that new note is passed to Mininote"""
         add_note(self.fakemn, 'string')
-        self.fakemn.add_note.assertCalledWith('string')
+
+        (note,),_ = self.fakemn.add_note.call_args
+        self.assertEqual('string', note.text)
 
     @patch('mininote.n.TextEditor')
     def test_query_notes(self, TextEditor):
