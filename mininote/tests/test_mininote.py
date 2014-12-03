@@ -19,7 +19,7 @@ class TestMininote(TestCase):
     @patch('mininote.mininote.EvernoteClient')
     def test_add_note(self, MockEvernoteClient):
         """Ensure that server call is made to add a note"""
-        client = Mininote(dev_token = 'foo')
+        client = Mininote(token = 'foo')
         client.add_note(Note('bar #unittest'))
 
         mock_note_store = MockEvernoteClient().get_note_store()
@@ -34,7 +34,7 @@ class TestMininote(TestCase):
         mock_note_store = MockEvernoteClient().get_note_store()
         mock_note_store.findNotesMetadata.side_effect = fake_results_gen()
 
-        n1, n2 = list(Mininote(dev_token = 'foo').search('foo'))
+        n1, n2 = list(Mininote(token = 'foo').search('foo'))
         self.assertEqual('title1', n1.text)
         self.assertEqual(0, n1.updated_time)
         self.assertEqual('title2', n2.text)
@@ -46,7 +46,7 @@ class TestMininote(TestCase):
         mock_note_store = MockEvernoteClient().get_note_store()
         mock_note_store.findNotesMetadata.side_effect = fake_results_gen()
 
-        client = Mininote(dev_token = 'foo')
+        client = Mininote(token = 'foo')
         note = client.search('foo').next()
         note.text = 'updated title with #tag'
         client.update_note(note)
@@ -61,7 +61,7 @@ class TestMininote(TestCase):
         mock_note_store = MockEvernoteClient().get_note_store()
         mock_note_store.findNotesMetadata.side_effect = fake_results_gen()
 
-        client = Mininote(dev_token = 'foo')
+        client = Mininote(token = 'foo')
         n1 = client.search('foo').next()
         client.delete_note(n1)
 

@@ -12,8 +12,8 @@ from evernote.edam.type.ttypes import Note as EdamNote, NoteSortOrder
 logger = logging.getLogger(__name__)
 
 class Mininote:
-    def __init__(self, dev_token):
-        client = EvernoteClient(token = dev_token)
+    def __init__(self, token):
+        client = EvernoteClient(token = token)
         self.note_store = client.get_note_store()
 
     def add_note(self, note):

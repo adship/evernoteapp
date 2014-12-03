@@ -1,40 +1,24 @@
 #!/usr/bin/env python
 import argparse
 import logging
-import os
-import platform
 
+from config_store import ConfigStore, ConfigLoadError
 from match_notes import match_notes
 from mininote import Mininote
 from note import Note, NoteParseError
+from oauth import get_auth_token
 from texteditor import TextEditor
 
 
 logger = logging.getLogger(__name__)
 
-def get_token():
+def login(config_store):
     """
-    Gets the authentication token -- dev_token for now
-    # TODO: add support for 'real' token
+    Run through oauth procedure and store authenticaion token
+
+    :param ConfigStore config_store: Store for authentication token
     """
-    windows = "Windows" in platform.system()
-    my_environ = os.environ.copy()
-
-    if windows:
-        path_default = os.path.join(my_environ["USERPROFILE"], "AppData", "Roaming", "mininote")
-    else:
-        path_default = os.path.join(my_environ["HOME"], ".mininote")
-    logger.info("getting token from default path: {}".format(path_default))
-
-    try:
-        file_name = os.path.join(path_default, "EvernoteDevToken.txt")
-        theFile = open(file_name, 'rb')
-    except:
-        logger.error("unable to open token file" + file_name)
-        return
-
-    theString = theFile.read()
-    return theString.strip()
+    config_store.auth_token = get_auth_token()
 
 def add_note(mn, note_string = None):
     """
@@ -111,10 +95,18 @@ if __name__ == '__main__':
     if args.verbose:
         root_logger.setLevel('DEBUG')
 
-    token = get_token()
+    config_store = ConfigStore()
+    if args.authenticate:
+        login(config_store)
 
-    if token:
-        mn = Mininote(token)
+    try:
+        auth_token = config_store.auth_token
+    except ConfigLoadError:
+        logger.error('Please login using "n --authenticate"')
+        auth_token = None
+
+    if auth_token:
+        mn = Mininote(auth_token)
         if args.change_notebook:
             logger.error("change notebook feature not implemented yet...")
         elif args.query:
