@@ -3,29 +3,34 @@ import subprocess
 import tempfile
 
 
-EDITOR  = "/usr/bin/vim" # TODO: configurable
+class TextEditorError(Exception):
+    """Error editing text"""
 
-class TextEditor:
+class TextEditor(object):
     """Edit a string in a system text editor"""
 
-    def __init__(self, content):
+    def __init__(self, text_editor):
         """
-        :param content: The initial text in the editor
+        :param str text_editor: The text editor binary to use
         """
-        self.content = content
+        self.path = None
+        self.text_editor = text_editor
 
-        fd, path = tempfile.mkstemp(suffix='.txt', prefix='mininote-')
-        os.write(fd, self.content)
-        os.close(fd)
-        self.path = path
-
-    def edit(self):
+    def edit(self, content):
         """
-        Open editor to edit content
+        Open editor to edit content.
 
+        :param str content: The initial text in the editor
         :returns: Updated content
+        :raises: TextEditorError
         """
-        subprocess.call('{} {}'.format(EDITOR, self.path), shell = True, cwd = os.path.dirname(self.path))
+        if not self.path:
+            self.path = TextEditor._create_tmpfile(content)
+
+        rcode = subprocess.call('{} {}'.format(self.text_editor, self.path), shell=True, cwd=os.path.dirname(self.path))
+        if rcode == 127:
+            self.cleanup()
+            raise TextEditorError('Unable to open text editor')
 
         with open(self.path) as f:
             self.content = f.read()
@@ -34,4 +39,18 @@ class TextEditor:
 
     def cleanup(self):
         """Erase tmp file on filesystem"""
-        os.remove(self.path)
+        if self.path:
+            os.remove(self.path)
+
+    @staticmethod
+    def _create_tmpfile(content):
+        """
+        Create a temp file.
+
+        :param str content: The initial text in the editor
+        :returns: Path to file
+        """
+        fd, path = tempfile.mkstemp(suffix='.txt', prefix='mininote-')
+        os.write(fd, content)
+        os.close(fd)
+        return path

@@ -45,7 +45,7 @@ class Note:
 
         try:
             updated_time = parser.parse(note_str[:datesep])
-        except (TypeError, TypeError):
+        except (TypeError, ValueError):
             raise NoteParseError
         text = note_str[datesep + 2:]
 
