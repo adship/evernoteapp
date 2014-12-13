@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 def login(config_store):
     """
-    Run through oauth procedure and store authenticaion token
+    Run through oauth procedure and store authentication token.
 
     :param ConfigStore config_store: Store for authentication token
     """
     config_store.auth_token = get_auth_token()
 
-def add_note(mn, note_string = None):
+def add_note(mn, note_string=None):
     """
     Save a new note.
 
@@ -77,7 +77,7 @@ def list_all_books(mn):
     for notebook in mn.list_books():
         print notebook
 
-if __name__ == '__main__':
+def main():
     root_logger = logging.getLogger()
     root_logger.setLevel('WARNING')
     root_logger.addHandler(logging.StreamHandler())
@@ -128,3 +128,6 @@ if __name__ == '__main__':
                 list_all_books(mn)
             else:
                 add_note(mn, args.note_text)
+
+if __name__ == '__main__':
+    main()
