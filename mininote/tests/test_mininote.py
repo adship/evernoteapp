@@ -1,7 +1,7 @@
 from mock import Mock, patch
 from unittest import TestCase
 from evernote.edam.notestore.ttypes import NotesMetadataList, NoteMetadata
-from evernote.edam.type.ttypes import Note as EdamNote
+from evernote.edam.type.ttypes import Note as EdamNote, Notebook
 
 from mininote.note import Note
 from mininote.mininote import *
@@ -14,7 +14,31 @@ def fake_results_gen():
     yield NotesMetadataList(startIndex = 0, totalNotes = 2, notes = [n1])
     yield NotesMetadataList(startIndex = 1, totalNotes = 2, notes = [n2])
 
-class TestMininote(TestCase):
+class TestMininoteEvernoteInteraction(TestCase):
+    """Test interaction with Evernote"""
+
+    @patch('mininote.mininote.EvernoteClient')
+    def test_get_notebook(self, MockEvernoteClient):
+        """Ensure that notebook is found if not provided"""
+        mock_note_store = MockEvernoteClient().get_note_store()
+        mock_note_store.listNotebooks.return_value = [Notebook(name='mininote', guid='guid')]
+
+        client = Mininote(token = 'foo')
+        print client._note_store.listNotebooks()
+
+        self.assertEqual('guid', client.notebook_guid)
+
+    @patch('mininote.mininote.EvernoteClient')
+    def test_create_notebook(self, MockEvernoteClient):
+        """Ensure that notebook is created if does not exist"""
+        mock_note_store = MockEvernoteClient().get_note_store()
+        mock_note_store.listNotebooks.return_value = []
+        mock_note_store.createNotebook.return_value = Notebook(guid='guid')
+
+        client = Mininote(token = 'foo')
+        print client._note_store.listNotebooks()
+
+        self.assertEqual('guid', client.notebook_guid)
 
     @patch('mininote.mininote.EvernoteClient')
     def test_add_note(self, MockEvernoteClient):
@@ -68,6 +92,9 @@ class TestMininote(TestCase):
         pargs, kwargs = mock_note_store.deleteNote.call_args
         self.assertEqual(101, pargs[0])
 
+class TestMininoteUtilities(TestCase):
+    """Test mininote utilities"""
+
     def test_encode_note(self):
         """Ensure that xml characters are escaped"""
         self.assertTrue('<en-note>hello world</en-note>' in encode_note_text('hello world'))
@@ -75,10 +102,12 @@ class TestMininote(TestCase):
 
     def test_convert_evernote(self):
         """Test that an Evernote note is converted to a Mininote note"""
-        note = convert_to_enote(Note(text = '  content  ', guid = 123, created_time = 1))
+        note = convert_to_enote(Note(text = '  content  ', guid = 123, created_time = 1), 
+                                notebook_guid = 'guid')
         self.assertEqual(123, note.guid)
         self.assertEqual('"  content  "', note.title)
         self.assertEqual(1000, note.created)
+        self.assertEqual('guid', note.notebookGuid)
 
     def test_convert_evernote_trunc(self):
         """Test that note size is truncated if too long for Evernote"""

@@ -1,50 +1,77 @@
-import json
 from mock import Mock, mock_open, patch
-from StringIO import StringIO
 from unittest import TestCase
 
 from mininote.config_store import ConfigStore, ConfigLoadError
 
 
-class TestConfigStore(TestCase):
-    """Tests for configuration store"""
+class MockConfigStore(ConfigStore):
+    """Fake out ConfigStore file access."""
+
+    def __init__(self, config):
+        """
+        :param dict config: Fake data
+        """
+        self.config = config
+
+    def _read_config(self):
+        return self.config
+
+    def _write_config(self, config):
+        self.config = config
+
+    @staticmethod
+    def _get_sys_text_editor():
+        return 'vim'
+
+class TestConfigStoreReadWrite(TestCase):
+    """Read write tests for ConfigStore"""
+
+    def test_read_cfg(self):
+        """Config is read from file correctly"""
+        cfg = {'auth_token': 'token',
+               'text_editor': 'vim',
+               'notebook_guid': 'guid'}
+        store = MockConfigStore(cfg)
+        self.assertEqual('token', store.auth_token)
+        self.assertEqual('vim', store.text_editor)
+        self.assertEqual('guid', store.notebook_guid)
+
+    def test_read_cfg_defaults(self):
+        """Behavior is correct if config not present"""
+        store = MockConfigStore(config={})
+        self.assertEqual('vim', store.text_editor)
+        self.assertRaises(ConfigLoadError, lambda: store.auth_token)
+        self.assertRaises(ConfigLoadError, lambda: store.notebook_guid)
+
+    def test_write_cfg(self):
+        """Config is written to file correctly"""
+        store = MockConfigStore(config={})
+        store.auth_token = 'token'
+        store.text_editor = 'vim'
+        store.notebook_guid = 'guid'
+
+        cfg = {'auth_token': 'token',
+               'text_editor': 'vim',
+               'notebook_guid': 'guid'}
+        self.assertEqual(cfg, store.config)
+
+    def test_delete_auth(self):
+        """Test that user account data is removed"""
+        cfg = {'auth_token': 'token',
+               'text_editor': 'vim',
+               'notebook_guid': 'guid'}
+        store = MockConfigStore(cfg)
+        store.delete_auth()
+
+        cfg = {'text_editor': 'vim'}
+        self.assertEqual(cfg, store.config)
+
+class TestConfigStoreFileIO(TestCase):
+    """File IO tests for ConfigStore"""
 
     def patch_open(self, data):
         self.mock_open = mock_open(read_data=data)
         return patch("mininote.config_store.open", self.mock_open, create=True)
-
-    def get_written_data(self):
-        writes = self.mock_open().write.call_args_list
-        return ''.join([w[0][0] for w in writes])
-
-    def test_read_cfg_token(self):
-        """Token is read from config if present"""
-        data = json.dumps({'auth_token' : 'foo'})
-        with self.patch_open(data):
-            cfg = ConfigStore()
-            self.assertEqual('foo', cfg.auth_token)
-
-    def test_read_text_editor(self):
-        """Text editor is read from config if present"""
-        data = json.dumps({'text_editor' : 'foo'})
-        with self.patch_open(data):
-            cfg = ConfigStore()
-            self.assertEqual('foo', cfg.text_editor)
-
-    @patch('mininote.config_store.get_sys_text_editor', return_value='vim')
-    def test_read_default_text_editor(self, DefaultEditor):
-        """Default editor is returned if config not present"""
-        data = json.dumps({})
-        with self.patch_open(data):
-            cfg = ConfigStore()
-            self.assertEqual('vim', cfg.text_editor)
-
-    def test_read_cfg_notfound(self):
-        """Test that has expected exception if config not present"""
-        data = json.dumps({})
-        with self.patch_open(data):
-            cfg = ConfigStore()
-            self.assertRaises(ConfigLoadError, lambda: cfg.auth_token)
 
     def test_read_cfg_invalid_file(self):
         """Test that has expected exception if file is invalid"""
@@ -60,13 +87,3 @@ class TestConfigStore(TestCase):
         with patch("mininote.config_store.open", mock, create=True):
             cfg = ConfigStore()
             self.assertRaises(ConfigLoadError, lambda: cfg.auth_token)
-
-    def test_write_content(self):
-        """Test that expected content is written to file"""
-        data = json.dumps({'key1':'val1'})
-        with self.patch_open(data):
-            cfg = ConfigStore()
-            cfg.auth_token = 'foo'
-
-        expected_write = {'auth_token': 'foo', 'key1': 'val1'} 
-        self.assertEqual(expected_write, json.loads(self.get_written_data()))

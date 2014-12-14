@@ -18,6 +18,7 @@ def login(config_store):
 
     :param ConfigStore config_store: Store for authentication token
     """
+    config_store.delete_auth()
     config_store.auth_token = get_auth_token()
 
 def add_note(mn, note_string=None):
@@ -28,7 +29,7 @@ def add_note(mn, note_string=None):
     :param str note_string: Note to add. If not provided, will prompt for note.
     """
     if note_string == None:
-        note_string = raw_input('mininote>')
+        note_string = raw_input('mn> ')
     mn.add_note(Note(note_string))
 
 def query_edit_notes(mn, query_string, interactive, text_editor):
@@ -44,10 +45,9 @@ def query_edit_notes(mn, query_string, interactive, text_editor):
     before_notes = list(mn.search(query_string))
     before_formatted_notes = '\r\n'.join(map(str, before_notes))
 
-    if not interactive:
+    if not interactive and len(before_notes) > 0:
         print before_formatted_notes
-    else:
-
+    elif interactive:
         after_formatted_notes = text_editor.edit(before_formatted_notes)
         try:
             nonblank_lines = filter(lambda line: len(line.strip()) > 0, after_formatted_notes.splitlines())
@@ -68,15 +68,6 @@ def query_edit_notes(mn, query_string, interactive, text_editor):
                 before_notes[after].text = after_notes[after].text
                 mn.update_note(before_notes[after])
 
-def list_all_books(mn):
-    """
-    Get a list of Evernote notebooks.
-
-    :param Mininote mn: Mininote instance
-    """
-    for notebook in mn.list_books():
-        print notebook
-
 def main():
     root_logger = logging.getLogger()
     root_logger.setLevel('WARNING')
@@ -84,17 +75,12 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("note_text", default=None, nargs="?")
-    parser.add_argument("-a", "--authenticate", help="prompt for authentication credentials", action="store_true")
-
-    parser.add_argument("-c", "--change-notebook", help="change the default notebook")
-    parser.add_argument("-b", "--list-books", help="list all notebooks", dest="list_books", action="store_true")
-
-    parser.add_argument("-q", "--query", help="query server for note containing the string")
-    parser.add_argument("-i", "--interactive", default=False, help="interactive edit mode", action="store_true")
-
-    parser.add_argument("-v", "--verbose", help="display additional information", action="store_true")
-
+    parser.add_argument("-q", "--query", help="search for notes")
+    parser.add_argument("-i", "--interactive", default=False, help="edit search results in a text editor", action="store_true")
+    parser.add_argument("-v", "--verbose", help=argparse.SUPPRESS, action="store_true")
+    parser.add_argument("--login", help="login to Evernote", action="store_true")
     parser.add_argument("--set-editor", default=None, help="set system text editor (example 'nano')")
+
     args = parser.parse_args()
 
     if args.verbose:
@@ -102,32 +88,41 @@ def main():
 
     config_store = ConfigStore()
 
-    if args.authenticate:
-        login(config_store)
-    elif args.set_editor:
-        config_store.text_editor = args.set_editor
-    else:
-        try:
-            auth_token = config_store.auth_token
-        except ConfigLoadError:
-            logger.error('Please login using "n --authenticate"')
-            auth_token = None
+    try:
+        if args.login:
+            login(config_store)
+        elif args.set_editor:
+            config_store.text_editor = args.set_editor
+        else:
+            # load auth
+            try:
+                auth_token = config_store.auth_token
+            except ConfigLoadError:
+                logger.error('Please login using "n --login"')
+                return
 
-        if auth_token:
-            mn = Mininote(auth_token)
-            if args.change_notebook:
-                logger.error("change notebook feature not implemented yet...")
-            elif args.query:
+            # load notebook
+            try:
+                notebook_guid = config_store.notebook_guid
+            except ConfigLoadError:
+                notebook_guid = None
+
+            mn = Mininote(auth_token, notebook_guid)
+
+            if notebook_guid == None:
+                config_store.notebook_guid = mn.notebook_guid
+
+            if args.query:
                 try:
                     text_editor_bin = config_store.text_editor
                     query_edit_notes(mn, args.query, args.interactive, TextEditor(text_editor_bin))
                 except TextEditorError:
-                    logger.error('Error opening text editor\n' +\
+                    logger.error('Error opening text editor\n' +
                                  'Please specify an editor with "n --set-editor <path-to-editor>"')
-            elif args.list_books:
-                list_all_books(mn)
             else:
                 add_note(mn, args.note_text)
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == '__main__':
     main()

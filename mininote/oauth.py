@@ -42,7 +42,7 @@ PAGE_CONTENT = """<html>
     <div>
         <span class="prompt">mininote</span>
         <span class="token">~$</span></span>
-        <span class="text">Proceed to the nearest terminal</span>
+        <span class="text">You may close this page and return to the terminal.</span>
     </div>
 </body>
 </html>"""
