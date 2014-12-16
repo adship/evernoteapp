@@ -1,7 +1,7 @@
 import logging
-import re
 from cgi import escape
-from constants import EVERNOTE_NOTEBOOK
+from constants import EVERNOTE_NOTEBOOK, EVERNOTE_CONSUMER_KEY, \
+                      EVERNOTE_CONSUMER_SECRET, DEVELOPMENT_MODE
 from note import Note
 
 from evernote.api.client import EvernoteClient
@@ -12,7 +12,7 @@ from evernote.edam.type.ttypes import Note as EdamNote, Notebook, NoteSortOrder
 
 logger = logging.getLogger(__name__)
 
-class Mininote:
+class Mininote(object):
     """Provides access to the Evernote 'database'."""
 
     def __init__(self, token, notebook_guid=None):
@@ -20,7 +20,11 @@ class Mininote:
         :param str token: The Evernote auth token
         :param str notebook_guid: The Evernote notebook GUID or None if not known
         """
-        client = EvernoteClient(token=token)
+        client = EvernoteClient(token=token,
+                                consumer_key=EVERNOTE_CONSUMER_KEY,
+                                consumer_secret=EVERNOTE_CONSUMER_SECRET,
+                                sandbox=DEVELOPMENT_MODE)
+
         self._note_store = client.get_note_store()
         self.notebook_guid = notebook_guid or self._get_create_notebook()
 
@@ -101,10 +105,10 @@ def convert_to_mininote(note_metadata):
         text = note_metadata.title[1: -1]
     else:
         text = note_metadata.title
-    return Note(text = text,
-                updated_time = note_metadata.updated / 1000,
-                created_time = note_metadata.created / 1000,
-                guid = note_metadata.guid)
+    return Note(text=text,
+                updated_time=note_metadata.updated / 1000,
+                created_time=note_metadata.created / 1000,
+                guid=note_metadata.guid)
 
 def convert_to_enote(note, notebook_guid=None):
     """
@@ -116,10 +120,10 @@ def convert_to_enote(note, notebook_guid=None):
         logger.warning("Note is too long, truncating final {} characters".format(len(note.text) - MAX_NOTE_LEN))
 
     created = note.created_time * 1000 if note.created_time else None
-    return EdamNote(guid = note.guid,
-                    notebookGuid = notebook_guid,
-                    title = '"{}"'.format(note.text[0: MAX_NOTE_LEN]),
-                    content = encode_note_text(""),
-                    updated = None,
-                    created = created,
-                    tagNames = note.tags)
+    return EdamNote(guid=note.guid,
+                    notebookGuid=notebook_guid,
+                    title='"{}"'.format(note.text[0: MAX_NOTE_LEN]),
+                    content=encode_note_text(""),
+                    updated=None,
+                    created=created,
+                    tagNames=note.tags)
