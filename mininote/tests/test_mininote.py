@@ -120,8 +120,13 @@ class TestMininoteUtilities(TestCase):
         self.assertEqual('""', note.title)
 
     def test_convert_mininote(self):
-        """Test that a Mininote note is converted to an Evernote note"""
+        """Test that a note is converted to Mininote format"""
         note = convert_to_mininote(EdamNote(title = '"content"', updated = 1000, created = 1000, guid = 123))
         self.assertEqual(123, note.guid)
         self.assertEqual('content', note.text)
         self.assertEqual(1, note.created_time)
+
+    def test_convert_mininote_empty_note(self):
+        """Test that an empty note is converted to Mininote format"""
+        note = convert_to_mininote(EdamNote(title = '""', updated = 1000, created = 1000))
+        self.assertEqual('', note.text)

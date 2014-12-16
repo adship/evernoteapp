@@ -100,7 +100,7 @@ def convert_to_mininote(note_metadata):
     Convert Evernote note to Mininote note
     :param note_metadata: NoteMetadata instance
     """
-    if len(note_metadata.title) > 2 and note_metadata.title.startswith('"') and \
+    if len(note_metadata.title) >= 2 and note_metadata.title.startswith('"') and \
                                         note_metadata.title.endswith('"'):
         text = note_metadata.title[1: -1]
     else:
