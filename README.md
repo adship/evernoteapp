@@ -1,3 +1,6 @@
+mininote
+========
+
 Forget everything you know about note taking apps. Take Twitter style notes with Mininote.
 
 In Mininote, a note is a single line of text with inline hash tags. Think of your notes as a cloud of tagged thoughts.
