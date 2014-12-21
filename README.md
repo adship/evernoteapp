@@ -19,7 +19,7 @@ Interact with notes:
     mn
     
     # Search for notes
-    mn -q "coffee
+    mn -q "coffee"
 
     # Edit notes in a text editor
     # Save and exit the editor to sync your changes
