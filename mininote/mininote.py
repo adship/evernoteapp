@@ -24,7 +24,13 @@ def decode_note_text(note_html):
     :returns: Note content
     """
     text_it = ElementTree.fromstring(note_html).itertext()
-    return ''.join(map(str.strip, text_it))
+
+    def tostr(text):
+        if type(text) == unicode:
+            return text.encode('utf-8')
+        else:
+            return text
+    return ''.join(map(lambda text: tostr(text).strip(), text_it))
 
 def encode_note_text(text):
     """

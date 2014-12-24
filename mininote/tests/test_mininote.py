@@ -104,12 +104,12 @@ class TestMininoteUtilities(TestCase):
 
     def test_decode_note(self):
         """Ensure that content is extracted"""
-        note1 = """<?xml version="1.0" encoding="UTF-8"?>
+        escape_test = """<?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
             <en-note>&lt;hello&gt;</en-note>"""
-        self.assertEquals('<hello>', decode_note_text(note1))
+        self.assertEquals('<hello>', decode_note_text(escape_test))
 
-        note2 = """<?xml version="1.0" encoding="UTF-8"?>
+        html_test = """<?xml version="1.0" encoding="UTF-8"?>
                    <!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
                    <en-note>
                       <h2>Enumerations</h2>
@@ -127,7 +127,12 @@ class TestMininoteUtilities(TestCase):
                       <div><br clear="none"/></div>
                    </en-note>
                    """
-        self.assertEquals('EnumerationsEnumeration: PrivilegeLevelThis enumeration defines the possible permission levels for a user. Free accounts will have a level of NORMAL and paid Premium accounts will have a level of PREMIUM.NORMAL1', decode_note_text(note2))
+        self.assertEquals('EnumerationsEnumeration: PrivilegeLevelThis enumeration defines the possible permission levels for a user. Free accounts will have a level of NORMAL and paid Premium accounts will have a level of PREMIUM.NORMAL1', decode_note_text(html_test))
+
+        symbol_test = """<?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
+            <en-note>\xc3\x9f</en-note>"""
+        self.assertEquals('\xc3\x9f', decode_note_text(symbol_test))
 
     def test_encode_note(self):
         """Ensure that xml characters are escaped"""
