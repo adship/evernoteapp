@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import logging
+import time
 
 from config_store import ConfigStore, ConfigLoadError
 from match_notes import match_notes
@@ -28,45 +29,52 @@ def add_note(mn, note_string=None):
     :param Mininote mn: Mininote instance
     :param str note_string: Note to add. If not provided, will prompt for note.
     """
-    if note_string == None:
+    if note_string is None:
         note_string = raw_input('mn> ')
     mn.add_note(Note(note_string))
 
-def query_edit_notes(mn, query_string, interactive, text_editor):
+def query_notes(mn, query_string):
     """
     Display search results and allow edits.
 
     :param Mininote mn: Mininote instance
     :param string query_string: Search string
-    :param bool interactive: if True, display results in text editor
-                             and allow edits to be made
+    """
+    time0 = time.time()
+    for note in mn.search(query_string):
+        print note
+    logger.debug('Total search/display time: {}'.format(time.time()-time0))
+
+def edit_notes(mn, query_string, text_editor):
+    """
+    Display search results and allow edits.
+
+    :param Mininote mn: Mininote instance
+    :param string query_string: Search string
     :param TextEditor text_editor: Editor for interactive edit mode
     """
     before_notes = list(mn.search(query_string))
     before_formatted_notes = '\r\n'.join(map(str, before_notes))
+    after_formatted_notes = text_editor.edit(before_formatted_notes)
 
-    if not interactive and len(before_notes) > 0:
-        print before_formatted_notes
-    elif interactive:
-        after_formatted_notes = text_editor.edit(before_formatted_notes)
-        try:
-            nonblank_lines = filter(lambda line: len(line.strip()) > 0, after_formatted_notes.splitlines())
-            after_notes = map(Note.parse_from_str, nonblank_lines)
-        except NoteParseError:
-            logger.error("Unable to parse changes to notes. Session is saved in {}".format(text_editor.path))
-            return
-        text_editor.cleanup()
+    try:
+        nonblank_lines = filter(lambda line: len(line.strip()) > 0, after_formatted_notes.splitlines())
+        after_notes = map(Note.parse_from_str, nonblank_lines)
+    except NoteParseError:
+        logger.error("Unable to parse changes to notes. Session is saved in {}".format(text_editor.path))
+        return
+    text_editor.cleanup()
 
-        before_notes_reparsed = map(lambda n: Note.parse_from_str(str(n)), before_notes)
-        pairs = match_notes(before_notes_reparsed, after_notes)
-        for before, after in pairs:
-            if before == None:
-                mn.add_note(after_notes[after])
-            elif after == None:
-                mn.delete_note(before_notes[before])
-            elif after_notes[after].text != before_notes[before].text:
-                before_notes[after].text = after_notes[after].text
-                mn.update_note(before_notes[after])
+    before_notes_reparsed = map(lambda n: Note.parse_from_str(str(n)), before_notes)
+    pairs = match_notes(before_notes_reparsed, after_notes)
+    for before, after in pairs:
+        if before is None:
+            mn.add_note(after_notes[after])
+        elif after is None:
+            mn.delete_note(before_notes[before])
+        elif after_notes[after].text != before_notes[before].text:
+            before_notes[after].text = after_notes[after].text
+            mn.update_note(before_notes[after])
 
 def main():
     root_logger = logging.getLogger()
@@ -107,18 +115,22 @@ def main():
             except ConfigLoadError:
                 notebook_guid = None
 
+            login_time0 = time.time()
             mn = Mininote(auth_token, notebook_guid)
+            logger.debug('Login time: {}'.format(time.time() - login_time0))
 
-            if notebook_guid == None:
+            if notebook_guid is None:
                 config_store.notebook_guid = mn.notebook_guid
 
-            if args.query:
+            if args.query and args.interactive:
                 try:
                     text_editor_bin = config_store.text_editor
-                    query_edit_notes(mn, args.query, args.interactive, TextEditor(text_editor_bin))
+                    edit_notes(mn, args.query, TextEditor(text_editor_bin))
                 except TextEditorError:
                     logger.error('Error opening text editor\n' +
                                  'Please specify an editor with "n --set-editor <path-to-editor>"')
+            elif args.query:
+                query_notes(mn, args.query)
             else:
                 add_note(mn, args.note_text)
     except KeyboardInterrupt:

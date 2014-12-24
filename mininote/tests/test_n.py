@@ -1,7 +1,7 @@
 from mock import Mock, patch
 from unittest import TestCase
 
-from mininote.n import add_note, query_edit_notes
+from mininote.n import add_note, query_notes, edit_notes
 from mininote.note import Note
 from mininote.texteditor import TextEditor
 
@@ -38,10 +38,15 @@ class TestN(TestCase):
         self.assertEqual('string', note.text)
 
     def test_query_notes(self):
-        """Ensure that notes are queried correctly"""
+        """Ensure that notes are queried correctly when searching"""
+        query_notes(self.fakemn, 'search string')
+        self.fakemn.search.assert_called_once_with('search string')
+
+    def test_edit_query_notes(self):
+        """Ensure that notes are queried correctly when editing"""
         text_editor = self.create_mock_text_editor('')
 
-        query_edit_notes(self.fakemn, 'search string', interactive=True, text_editor=text_editor)
+        edit_notes(self.fakemn, 'search string', text_editor=text_editor)
         self.fakemn.search.assert_called_once_with('search string')
 
         # notes were sent to editor correctly
@@ -53,7 +58,7 @@ class TestN(TestCase):
         """Ensure that deletions are synced to mininote"""
         text_editor = self.create_mock_text_editor(str(self.fakenote1)) # fakenote2 deleted)
 
-        query_edit_notes(self.fakemn, 'search string', interactive=True, text_editor=text_editor)
+        edit_notes(self.fakemn, 'search string', text_editor=text_editor)
 
         # fakenote2 was deleted 
         self.fakemn.delete_note.assert_called_once_with(self.fakenote2)
@@ -62,7 +67,7 @@ class TestN(TestCase):
         """Ensure that edits are synced to mininote"""
         text_editor = self.create_mock_text_editor(str(self.fakenote1) + '\r\n' + \
                                                    str(self.fakenote2) + 'new content')
-        query_edit_notes(self.fakemn, 'search string', interactive=True, text_editor=text_editor)
+        edit_notes(self.fakemn, 'search string', text_editor=text_editor)
 
         # fakenote2 was updated
         self.fakenote2.text = self.fakenote2.text + 'new content'
@@ -71,7 +76,7 @@ class TestN(TestCase):
     def test_bad_edit_note(self):
         """Ensure that bad syntax is detected and sync aborted"""
         text_editor = self.create_mock_text_editor('--bad note syntax--')
-        query_edit_notes(self.fakemn, 'search string', interactive=True, text_editor=text_editor)
+        edit_notes(self.fakemn, 'search string', text_editor=text_editor)
 
         # tempfile was not deleted
         self.assertFalse(text_editor.cleanup.called)
