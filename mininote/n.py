@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 import argparse
+import colorama
 import logging
 import time
 
+from collections import Counter
+from colorstr import colorstr
 from config_store import ConfigStore, ConfigLoadError
 from match_notes import match_notes
 from mininote import Mininote
@@ -40,9 +43,30 @@ def query_notes(mn, query_string):
     :param Mininote mn: Mininote instance
     :param string query_string: Search string
     """
+    INLINE_TAG_STYLE = 'GREEN'
+    INLINE_DATE_STYLE = 'DIM'
+    TAGLIST_TAG_STYLE = 'BLUE'
+    TAGLIST_COUNT_STYLE = 'DIM'
+
     time0 = time.time()
+    tagcounts = Counter()
     for note in mn.search(query_string):
-        print note
+        tagcounts.update(note.tags)
+        def colorize(word):
+            if word.startswith('#'):
+                return colorstr(INLINE_TAG_STYLE, word)
+            else:
+                return word
+        colortags = ' '.join(map(colorize, note.text.split(' ')))
+        print('{}: {}'.format(colorstr(INLINE_DATE_STYLE, note.strft_created_time), colortags))
+
+    if len(tagcounts) > 0:
+        print ''
+        print ' '.join([colorstr(TAGLIST_TAG_STYLE, '#{}'.format(tag)) +
+                        colorstr(TAGLIST_COUNT_STYLE, ' ({})  '.format(count))
+                        for tag, count
+                        in sorted(tagcounts.items(), key=lambda p:p[1], reverse=True)])
+
     logger.debug('Total search/display time: {}'.format(time.time()-time0))
 
 def edit_notes(mn, query_string, text_editor):
@@ -77,6 +101,8 @@ def edit_notes(mn, query_string, text_editor):
             mn.update_note(before_notes[after])
 
 def main():
+    colorama.init()
+
     root_logger = logging.getLogger()
     root_logger.setLevel('WARNING')
     root_logger.addHandler(logging.StreamHandler())

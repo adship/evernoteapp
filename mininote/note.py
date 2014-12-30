@@ -24,12 +24,20 @@ class Note:
 
     @property
     def tags(self):
-        """List of tags attached to note"""
+        """
+        :returns: List of tags attached to note
+        """
         return TAGREGEX.findall(self.text) 
 
+    @property
+    def strft_created_time(self):
+        """
+        :returns: Created time formatted as a localized string.
+        """
+        return datetime.fromtimestamp(self.created_time).strftime("%x %I:%M %p")
+
     def __str__(self):
-        created = datetime.fromtimestamp(self.created_time).strftime("%x %I:%M %p")
-        return '{}: {}'.format(created, self.text)
+        return '{}: {}'.format(self.strft_created_time, self.text)
 
     @staticmethod
     def parse_from_str(note_str):
