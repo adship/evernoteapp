@@ -33,12 +33,12 @@ def add_note(mn, note_string=None):
     :param str note_string: Note to add. If not provided, will prompt for note.
     """
     if note_string is None:
-        note_string = raw_input('mn> ')
+        note_string = raw_input(colorstr('DIM', 'mn> '))
     mn.add_note(Note(note_string))
 
 def query_notes(mn, query_string):
     """
-    Display search results and allow edits.
+    Display search results.
 
     :param Mininote mn: Mininote instance
     :param string query_string: Search string
@@ -48,24 +48,25 @@ def query_notes(mn, query_string):
     TAGLIST_TAG_STYLE = 'BLUE'
     TAGLIST_COUNT_STYLE = 'DIM'
 
+    def colorize(word):
+        if word.startswith('#'):
+            return colorstr(INLINE_TAG_STYLE, word)
+        else:
+            return word
+
     time0 = time.time()
     tagcounts = Counter()
     for note in mn.search(query_string):
         tagcounts.update(note.tags)
-        def colorize(word):
-            if word.startswith('#'):
-                return colorstr(INLINE_TAG_STYLE, word)
-            else:
-                return word
-        colortags = ' '.join(map(colorize, note.text.split(' ')))
-        print('{}: {}'.format(colorstr(INLINE_DATE_STYLE, note.strft_created_time), colortags))
+        colordate = colorstr(INLINE_DATE_STYLE, '{}: '.format(note.strft_created_time))
+        colortext = ' '.join(map(colorize, note.text.split(' ')))
+        print(colordate + colortext)
 
     if len(tagcounts) > 0:
-        print ''
-        print ' '.join([colorstr(TAGLIST_TAG_STYLE, '#{}'.format(tag)) +
-                        colorstr(TAGLIST_COUNT_STYLE, ' ({})  '.format(count))
-                        for tag, count
-                        in sorted(tagcounts.items(), key=lambda p:p[1], reverse=True)])
+        print('\n' + ' '.join([colorstr(TAGLIST_TAG_STYLE, '#{}'.format(tag)) +
+                               colorstr(TAGLIST_COUNT_STYLE, ' ({})  '.format(count))
+                               for tag, count
+                               in sorted(tagcounts.items(), key=lambda p:p[1], reverse=True)]))
 
     logger.debug('Total search/display time: {}'.format(time.time()-time0))
 
