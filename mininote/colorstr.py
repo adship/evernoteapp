@@ -3,10 +3,10 @@ from sys import stdout
 
 
 COLORS = {
-    'RED': [Fore.RED, Fore.WHITE],
-    'BLUE': [Fore.BLUE, Fore.WHITE],
-    'GREEN': [Fore.GREEN, Fore.WHITE],
-    'DIM': [Style.DIM, Style.NORMAL]
+    'RED': [Fore.RED, Fore.RESET],
+    'BLUE': [Fore.BLUE, Fore.RESET],
+    'GREEN': [Fore.GREEN, Fore.RESET],
+    'DIM': [Style.DIM, Style.RESET_ALL]
 }
 
 def colorstr(style, string):
@@ -14,7 +14,7 @@ def colorstr(style, string):
     Add color commands to the string.
 
     :param string: The string to color
-    :param style: The color or style to apply
+    :param style: The style to apply
     :returns: New string
     """
     if stdout.isatty():
