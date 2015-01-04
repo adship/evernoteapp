@@ -1,12 +1,14 @@
 from evernote.api.client import EvernoteClient
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from urlparse import urlparse
+from urlparse import urlparse, urljoin
 
 from constants import DEVELOPMENT_MODE, \
                       EVERNOTE_CONSUMER_KEY, \
                       EVERNOTE_CONSUMER_SECRET
 from silent_webbrowser import SilentWebbrowser
 
+
+RETURN_PATH = '/register'
 
 PAGE_CONTENT = """<html>
 <head>
@@ -54,12 +56,12 @@ def get_auth_token():
     :returns: User token string
     """
     # Create an HTTP server on a spare port
-    httpd = HTTPServer(('127.0.0.1', 0), MininoteHTTPRequestHandler)
-    callbackurl = "http://{}:{}".format(*httpd.server_address)
+    httpd = MininoteHTTPServer(('127.0.0.1', 0), MininoteHTTPRequestHandler)
+    callbackurl = urljoin("http://{}:{}".format(*httpd.server_address), RETURN_PATH)
 
-    client = EvernoteClient(consumer_key = EVERNOTE_CONSUMER_KEY,
-                            consumer_secret = EVERNOTE_CONSUMER_SECRET,
-                            sandbox = DEVELOPMENT_MODE)
+    client = EvernoteClient(consumer_key=EVERNOTE_CONSUMER_KEY,
+                            consumer_secret=EVERNOTE_CONSUMER_SECRET,
+                            sandbox=DEVELOPMENT_MODE)
 
     request_token = client.get_request_token(callbackurl)
 
@@ -71,28 +73,42 @@ def get_auth_token():
 
     # Wait until browser is redirected
     httpd.server_activate()
-    httpd.handle_request()
+    while httpd.auth_path is None:
+        httpd.handle_request()
     httpd.server_close()
 
     def parse_query_string(authorize_url):
         query_params = urlparse(authorize_url).query
         return dict(kv.split('=') for kv in query_params.split('&'))
 
-    vals = parse_query_string(httpd.path)
+    vals = parse_query_string(httpd.auth_path)
+    if 'oauth_verifier' not in vals:
+        raise OAuthError('There was an error logging in.  Please try again.')
     return client.get_access_token(request_token['oauth_token'],
                                    request_token['oauth_token_secret'],
                                    vals['oauth_verifier'])
+
+class OAuthError(Exception):
+    """Error in OAuth procedure"""
+
+class MininoteHTTPServer(HTTPServer):
+    """HTTPServer for static OAuth response page"""
+
+    def __init__(self, *args, **kwargs):
+        HTTPServer.__init__(self, *args, **kwargs)
+        self.auth_path = None
 
 class MininoteHTTPRequestHandler(BaseHTTPRequestHandler):
     """Serve static OAuth response page"""
 
     def do_GET(self):
-        self.server.path = self.path
-        self.send_response(200)
-        self.send_header("Content-type", "text/html;")
-        self.send_header("Content-Length", len(PAGE_CONTENT))
-        self.end_headers()
-        self.wfile.write(PAGE_CONTENT)
+        if urlparse(self.path).path == RETURN_PATH:
+            self.server.auth_path = self.path
+            self.send_response(200)
+            self.send_header("Content-type", "text/html;")
+            self.send_header("Content-Length", len(PAGE_CONTENT))
+            self.end_headers()
+            self.wfile.write(PAGE_CONTENT)
 
     def log_message(self, format, *args):
         """Do nothing to mute output."""

@@ -10,7 +10,7 @@ from config_store import ConfigStore, ConfigLoadError
 from match_notes import match_notes
 from mininote import Mininote
 from note import Note, NoteParseError
-from oauth import get_auth_token
+from oauth import get_auth_token, OAuthError
 from texteditor import TextEditor, TextEditorError
 
 
@@ -23,7 +23,10 @@ def login(config_store):
     :param ConfigStore config_store: Store for authentication token
     """
     config_store.delete_auth()
-    config_store.auth_token = get_auth_token()
+    try:
+        config_store.auth_token = get_auth_token()
+    except OAuthError as e:
+        logger.error(e.message)
 
 def add_note(mn, note_string=None):
     """
