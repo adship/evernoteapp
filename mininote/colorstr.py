@@ -3,10 +3,12 @@ from sys import stdout
 
 
 COLORS = {
-    'RED': [Fore.RED, Fore.RESET],
-    'BLUE': [Fore.BLUE, Fore.RESET],
-    'GREEN': [Fore.GREEN, Fore.RESET],
-    'DIM': [Style.DIM, Style.RESET_ALL]
+    'RED': (Fore.RED, Fore.RESET),
+    'BLUE': (Fore.BLUE, Fore.RESET),
+    'GREEN': (Fore.GREEN, Fore.RESET),
+    'MAGENTA': (Fore.MAGENTA, Fore.RESET),
+    'DIM': (Style.DIM, Style.RESET_ALL),
+    'BRIGHT-CYAN': (Fore.CYAN + Style.BRIGHT, Fore.RESET + Style.RESET_ALL)
 }
 
 def colorstr(style, string):

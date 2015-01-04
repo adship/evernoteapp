@@ -43,9 +43,9 @@ def query_notes(mn, query_string):
     :param Mininote mn: Mininote instance
     :param string query_string: Search string
     """
-    INLINE_TAG_STYLE = 'GREEN'
-    INLINE_DATE_STYLE = 'DIM'
-    TAGLIST_TAG_STYLE = 'BLUE'
+    INLINE_TAG_STYLE = 'BRIGHT-CYAN'
+    INLINE_DATE_STYLE = 'MAGENTA'
+    TAGLIST_TAG_STYLE = 'BRIGHT-CYAN'
     TAGLIST_COUNT_STYLE = 'DIM'
 
     def colorize(word):
@@ -64,7 +64,7 @@ def query_notes(mn, query_string):
 
     if len(tagcounts) > 0:
         print('\n' + ' '.join([colorstr(TAGLIST_TAG_STYLE, '#{}'.format(tag)) +
-                               colorstr(TAGLIST_COUNT_STYLE, ' ({})  '.format(count))
+                               colorstr(TAGLIST_COUNT_STYLE, ' ({}) '.format(count))
                                for tag, count
                                in sorted(tagcounts.items(), key=lambda p:p[1], reverse=True)]))
 
