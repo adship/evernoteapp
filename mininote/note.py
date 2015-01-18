@@ -4,7 +4,7 @@ from datetime import datetime
 from dateutil import parser
 
 
-TAGREGEX = re.compile(r'#(\w+)')
+TAGREGEX = re.compile(ur'(^|\s)#([\w\-]*\w+)', flags=re.UNICODE)
 
 class NoteParseError(Exception):
     pass
@@ -25,9 +25,13 @@ class Note:
     @property
     def tags(self):
         """
-        :returns: List of tags attached to note
+        :returns: Set of tags attached to note
         """
-        return TAGREGEX.findall(self.text) 
+        def normalize(tag):
+            # todo: use unicode everywhere
+            return tag.lower().encode('utf-8')
+        tags = [normalize(tag) for sep, tag in TAGREGEX.findall(self.text.decode('utf-8'))]
+        return set(tags)
 
     @property
     def strft_created_time(self):

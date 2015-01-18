@@ -52,7 +52,7 @@ class TestMininoteEvernoteInteraction(TestCase):
 
         pargs, kwargs = client._note_store().createNote.call_args
 
-        self.assertEqual(['unittest'], pargs[0].tagNames)
+        self.assertEqual({'unittest'}, pargs[0].tagNames)
         self.assertEqual('"bar #unittest"', pargs[0].title)
         self.assertEqual(encode_note_text('bar #unittest'), pargs[0].content)
 
@@ -85,7 +85,7 @@ class TestMininoteEvernoteInteraction(TestCase):
         client.update_note(note)
 
         pargs, kwargs = client.note_store.updateNote.call_args
-        self.assertEqual(['tag'], pargs[0].tagNames)
+        self.assertEqual({'tag'}, pargs[0].tagNames)
         self.assertEqual('"updated title with #tag"', pargs[0].title)
 
     @patch('mininote.mininote.EvernoteClient')
