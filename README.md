@@ -11,24 +11,24 @@ Use it
 
 Login to your Evernote account:
 
-    mn --login
+    mn login
 
 Interact with notes:
 
     # Add a new note
-    mn
+    mn add "new note#tag"
     
     # Search for notes
-    mn -q "coffee"
+    mn search "coffee"
 
     # Edit notes in a text editor
     # Save and exit the editor to sync your changes
-    mn -q "coffee" -i
+    mn edit "#tag" 
 
 Configure Mininote:
 
     # Set the text editor for note editing
-    mn --set-editor "vim"
+    mn set-editor "fullpath\wordpad.exe"
 
 Read more about the search syntax [here](https://dev.evernote.com/doc/articles/search_grammar.php#Examples).
 
