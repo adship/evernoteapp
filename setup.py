@@ -14,6 +14,6 @@ setup(
     packages = ['mininote'],
     entry_points = {
         'console_scripts': [
-            'mn = mininote.n:main'
+            'mn = mininote.mn:main'
         ]}
 )
