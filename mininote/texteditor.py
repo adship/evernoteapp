@@ -27,7 +27,7 @@ class TextEditor(object):
         if not self.path:
             self.path = TextEditor._create_tmpfile(content)
 
-        rcode = subprocess.call('{} {}'.format(self.text_editor, self.path), shell=True, cwd=os.path.dirname(self.path))
+        rcode = subprocess.call('"{}" {}'.format(self.text_editor, self.path), shell=True, cwd=os.path.dirname(self.path))
         if rcode == 127:
             self.cleanup()
             raise TextEditorError('Unable to open text editor')
