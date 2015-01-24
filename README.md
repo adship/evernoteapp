@@ -38,7 +38,7 @@ Read more about the search syntax [here](https://dev.evernote.com/doc/articles/s
 Installation
 ============
 
-Download the source from Github, install Python 2.7 and run:
+Download the source from Github, install Python [2.7.x](https://www.python.org/downloads/) and run:
 
     python setup.py install
 
