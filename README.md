@@ -1,13 +1,16 @@
-![mininote](/logo.png)
+Mininote
+========
 
-Forget everything you know about note taking apps. Take Twitter style notes with Mininote.
+Mininote is a lightweight note taking app for [Evernote](http://evernote.com) that makes capturing thoughts and other arbitrary information easy and minimally distracting.
 
-In Mininote, a note is a single line of text with inline hash tags. Think of your notes as a cloud of tagged thoughts.
+In Mininote, notes are single lines of text with inline hashtags; much like Tweets on Twitter.
 
-Notes are stored in a "mininote" notebook in your Evernote account.
+Notes live in a *mininote* notebook in your Evernote account.
 
-Use it
-======
+![mininote](/screencast.gif)
+
+Commands
+========
 
 Login to your Evernote account:
 
@@ -16,7 +19,7 @@ Login to your Evernote account:
 Interact with notes:
 
     # Add a new note
-    mn add "new note#tag"
+    mn add "new note #tag"
     
     # Search for notes
     mn search "coffee"
@@ -35,9 +38,11 @@ Read more about the search syntax [here](https://dev.evernote.com/doc/articles/s
 Installation
 ============
 
-Download the source, install Python 2.7 and run:
+Download the source from Github, install Python 2.7 and run:
 
     python setup.py install
+
+On Windows, you may need to add the *C:\Python27\Scripts* directory to your system path.
 
 Contact
 =======

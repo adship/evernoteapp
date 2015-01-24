@@ -193,7 +193,7 @@ def main():
         mn = get_mn(config_store) if args.authorized else None
         args.handler(mn, config_store, args)
     except NotLoggedInError:
-        logger.error('Please login using "mn --login"')
+        logger.error('Please login using \'mn login\'')
     except TextEditorError:
         logger.error('Error opening text editor\n' +
                      'Please specify an editor with \'mn set-editor "<path-to-editor>"\'')
