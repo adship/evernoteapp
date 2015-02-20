@@ -104,9 +104,9 @@ def edit_notes(mn, config_store, args):
             mn.add_note(after_notes[after])
         elif after is None:
             mn.delete_note(before_notes[before])
-        elif after_notes[after].text != before_notes[before].text:
-            before_notes[after].text = after_notes[after].text
-            mn.update_note(before_notes[after])
+        elif before_notes[before].text != after_notes[after].text:
+            before_notes[before].text = after_notes[after].text
+            mn.update_note(before_notes[before])
 
 def set_editor(mn, config_store, args):
     """

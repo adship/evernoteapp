@@ -68,12 +68,11 @@ class TestN(TestCase):
 
     def test_edit_note(self):
         """Ensure that edits are synced to mininote"""
-        text_editor = self.create_mock_text_editor(str(self.fakenote1) + '\r\n' +
-                                                   str(self.fakenote2) + 'new content')
+        text_editor = self.create_mock_text_editor(str(self.fakenote2) + 'newcont \r\n' +
+                                                   str(self.fakenote1))
         edit_notes(self.fakemn, self.fake_config, Namespace(note='search string', text_editor=text_editor))
 
         # fakenote2 was updated
-        self.fakenote2.text = self.fakenote2.text + 'new content'
         self.fakemn.update_note.assert_called_once_with(self.fakenote2)
 
     def test_bad_edit_note(self):
